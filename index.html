@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camila Shen | Portfolio</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,900;1,6..96,400;1,6..96,900&family=JetBrains+Mono:wght@100;400;800&family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Framer Motion -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+
+    <style>
+        /* Custom Styles copied from the original JSX styled component logic */
+        @keyframes gradient-fast {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-gradient-fast {
+          animation: gradient-fast 5s ease infinite;
+        }
+
+        .serif-title { font-family: 'Bodoni Moda', 'Noto Serif SC', serif; }
+        body { font-family: 'Noto Serif SC', serif; background-color: black; color: #F5F5F0; letter-spacing: 0.02em; -webkit-font-smoothing: antialiased; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #10b98160; border-radius: 2px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        
+        .image-sharp {
+          image-rendering: -webkit-optimize-contrast;
+          image-rendering: crisp-edges;
+          backface-visibility: hidden;
+          transform: translateZ(0);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+          overflow-wrap: break-word;
+          word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // --- Imports Setup ---
+        const { useState, useEffect, useRef } = React;
+        const { motion, AnimatePresence } = window.Motion;
+
+        // --- Lucide Icons (Implemented as components for browser compatibility) ---
+        const IconWrapper = ({ children, size = 20, className = "" }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width={size} 
+                height={size} 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                className={className}
+            >
+                {children}
+            </svg>
+        );
+
+        const FileText = (props) => <IconWrapper {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></IconWrapper>;
+        const Cpu = (props) => <IconWrapper {...props}><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" x2="9" y1="1" y2="4"/><line x1="15" x2="15" y1="1" y2="4"/><line x1="9" x2="9" y1="20" y2="23"/><line x1="15" x2="15" y1="20" y2="23"/><line x1="20" x2="23" y1="9" y2="9"/><line x1="20" x2="23" y1="15" y2="15"/><line x1="1" x2="4" y1="9" y2="9"/><line x1="1" x2="4" y1="15" y2="15"/></IconWrapper>;
+        const Layers = (props) => <IconWrapper {...props}><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></IconWrapper>;
+        const Mic2 = (props) => <IconWrapper {...props}><path d="m12 8-9.04 9.06a2.82 2.82 0 1 0 3.98 3.98L16 12"/><circle cx="17" cy="7" r="5"/></IconWrapper>; // Note: Lucide 'Mic2' usually looks like a mic, but for simplicity we use standard Mic path or the one requested. Let's use standard Mic path if specific one not found, but I will use the standard 'Mic' path as 'Mic2' is deprecated/similar. 
+        // Correcting Mic2 to standard Mic for visual consistency if needed, but let's try to match Lucide exactly.
+        const MicIcon = (props) => <IconWrapper {...props}><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></IconWrapper>;
+
+        const BookOpen = (props) => <IconWrapper {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></IconWrapper>;
+        const Send = (props) => <IconWrapper {...props}><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></IconWrapper>;
+        const Flag = (props) => <IconWrapper {...props}><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></IconWrapper>;
+        const Users = (props) => <IconWrapper {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></IconWrapper>;
+        const MapPin = (props) => <IconWrapper {...props}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></IconWrapper>;
+        const Globe = (props) => <IconWrapper {...props}><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="a12.29 12.29 0 0 0 11.5-6.5 12.29 12.29 0 0 0-11.5 6.5 12.29 12.29 0 0 0 11.5-6.5 12.29 12.29 0 0 0-11.5 6.5"/></IconWrapper>; // Simplified Globe
+        // Better Globe path
+        const GlobeIcon = (props) => <IconWrapper {...props}><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></IconWrapper>;
+
+        const Briefcase = (props) => <IconWrapper {...props}><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></IconWrapper>;
+        const Maximize2 = (props) => <IconWrapper {...props}><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></IconWrapper>;
+        const ExternalLink = (props) => <IconWrapper {...props}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></IconWrapper>;
+        const MessageSquare = (props) => <IconWrapper {...props}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></IconWrapper>;
+        const Video = (props) => <IconWrapper {...props}><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></IconWrapper>;
+        const Zap = (props) => <IconWrapper {...props}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></IconWrapper>;
+
+        // --- Custom Icons from Original File ---
+        const XIcon = ({ size = 20 }) => (
+          <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932 6.064-6.932zm-1.292 19.494h2.039L6.486 3.24H4.298l13.311 17.407z"/>
+          </svg>
+        );
+
+        const LinkedInIcon = ({ size = 20 }) => (
+          <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+          </svg>
+        );
+
+        const InstagramIcon = ({ size = 20 }) => (
+          <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.981 1.28.058 1.688.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+          </svg>
+        );
+
+        // --- Data Configuration ---
+
+        const COMPANIES = [
+          { id: 'coinw', name: 'CoinW' },
+          { id: 'covalent', name: 'Covalent' },
+          { id: 'zklink', name: 'zkLink' }
+        ];
+
+        const COINW_SECTIONS = [
+          {
+            id: 'strategy',
+            title: 'Brand Strategy',
+            subtitle: 'High Impact',
+            icon: <Flag size={20} />,
+            items: [
+              'Brand milestone event communication',
+              'Global strategic deployment updates',
+              'Large-scale industry summits & offline campaigns'
+            ],
+            images: [
+              { src: "https://i.postimg.cc/bvSFgDxT/marathon_1.jpg", link: "https://i.postimg.cc/bvSFgDxT/marathon_1.jpg" },
+              { src: "https://i.postimg.cc/7LJQ9G3Q/token_2049_1.jpg", link: "https://i.postimg.cc/7LJQ9G3Q/token_2049_1.jpg" }
+            ]
+          },
+          {
+            id: 'product',
+            title: 'Product Narrative',
+            subtitle: 'Core Tech',
+            icon: <Cpu size={20} />,
+            items: [
+              'Product updates & feature highlights',
+              'Trading experience optimization stories',
+              'Deep dives into technical innovations'
+            ],
+            images: [
+              { src: "https://i.postimg.cc/jSFFyQ7m/gemw_upgrade.jpg", link: "https://i.postimg.cc/jSFFyQ7m/gemw_upgrade.jpg" },
+              { src: "https://i.postimg.cc/xdNF5JvW/wconnect_core_value_ct_spotlight.jpg", link: "https://i.postimg.cc/xdNF5JvW/wconnect_core_value_ct_spotlight.jpg" },
+              { src: "https://i.postimg.cc/k5Rhs6N3/wconnect_x_mantle.jpg", link: "https://i.postimg.cc/k5Rhs6N3/wconnect_x_mantle.jpg" },
+              { src: "https://i.postimg.cc/8PWRZR99/crazyearn_campaign.png", link: "https://i.postimg.cc/8PWRZR99/crazyearn_campaign.png" }
+            ]
+          },
+          {
+            id: 'regional',
+            title: 'Regional Growth',
+            subtitle: 'Localized Matrix',
+            icon: <MapPin size={20} />,
+            items: [
+              'Localized communication materials for specific markets',
+              'Affiliate incentive programs & ecosystem support',
+              'Global KOL and agent collaborative content'
+            ],
+           images: [
+              { src: "https://i.postimg.cc/zGccTSg2/australia_event_recap_1.jpg", link: "https://i.postimg.cc/zGccTSg2/australia_event_recap_1.jpg" },
+              { src: "https://i.postimg.cc/KY3sfkPJ/australia_recap_2.jpg", link: "https://i.postimg.cc/KY3sfkPJ/australia_recap_2.jpg" }
+            ]
+          },
+          {
+            id: 'eco',
+            title: 'Ecosystem Sync',
+            subtitle: 'User Engagement',
+            icon: <Users size={20} />,
+            items: [
+              'Operational activities & hot-topic campaigns',
+              'User growth initiatives & strategy execution',
+              'Integrated narrative for ecosystem products'
+            ],
+            images: [
+             { src: "https://i.postimg.cc/x144LyzB/coinw_ecosystem.jpg", link: "https://i.postimg.cc/x144LyzB/coinw_ecosystem.jpg" }
+            ]
+          }
+        ];
+
+        const CONTENT_FORMS = [
+          { type: 'News Flash', icon: <Send size={16} />, desc: 'Focused on product updates and market responses.' },
+          { type: 'Press Release', icon: <FileText size={16} />, desc: 'Covers product launches and major strategic announcements.' },
+          { type: 'Executive Interview', icon: <MicIcon size={16} />, desc: 'Builds professional profiles for brand leadership.' },
+          { type: 'In-depth Article', icon: <BookOpen size={16} />, desc: 'Combines tech insights and industry trends.' }
+        ];
+
+        const COINW_MEDIA = [
+          { category: "Global T1", items: ["Cointelegraph", "Coindesk", "The Block", "Decrypt"] },
+          { category: "CN Major", items: ["Techflow", "PANews", "Odaily", "Foresight News", "ChainCatcher"] }
+        ];
+
+        const COVALENT_SECTIONS = [
+          {
+            id: 'branding',
+            title: 'Branding & PR',
+            subtitle: 'Voice of APAC',
+            icon: <GlobeIcon size={20} />,
+            items: [
+              'Led brand positioning and media relations across APAC markets',
+              'Managed Chinese localized content and strategic PR outreach'
+            ],
+            links: [
+              { name: 'Visit Press Page', url: 'https://www.covalenthq.com/press/#chinese' }
+            ],
+            images: []
+          },
+          {
+            id: 'token-launch',
+            title: 'CXT Token Launch',
+            subtitle: 'Global Relaunch',
+            icon: <Layers size={20} />,
+            items: [
+              'Coordinated OKX listing and global token migration campaigns',
+              'Executed high-visibility marketing strategies for the relaunch'
+            ],
+            images: [
+           { src: "https://i.postimg.cc/3J5ktPgW/okx_token_relaunch.jpg", link: "https://i.postimg.cc/3J5ktPgW/okx_token_relaunch.jpg" },
+              { src: "https://i.postimg.cc/NfqKdW19/CXT_listing_on_exchanges.png", link: "https://i.postimg.cc/NfqKdW19/CXT_listing_on_exchanges.png" }
+            ]
+          },
+          {
+            id: 'partnerships',
+            title: 'Partnerships and Collaborations',
+            subtitle: 'Strategic Ecosystem',
+            icon: <Send size={20} />,
+            items: [
+              'Strategic marketing collaborations with Google Cloud and other partners',
+              'Education-driven initiatives as a guest lecturer for developer courses'
+            ],
+            images: [
+                 { src: "https://i.postimg.cc/J0WRQCSS/google_x_covalent.png", link: "https://i.postimg.cc/J0WRQCSS/google_x_covalent.png" },
+              { src: "https://i.postimg.cc/VLgb5KCY/tintinland_open_course_lecturer.jpg", link: "https://i.postimg.cc/VLgb5KCY/tintinland_open_course_lecturer.jpg" },
+              { src: "https://i.postimg.cc/vTdGvwCJ/lunar_new_year_airdrop_covalent.jpg", link: "https://i.postimg.cc/vTdGvwCJ/lunar_new_year_airdrop_covalent.jpg" }
+            ]
+          },
+          {
+            id: 'offline',
+            title: 'Offline Event',
+            subtitle: 'Global Presence',
+            icon: <MapPin size={20} />,
+            items: [
+              'Organization and execution of major industry offline summits',
+              'Fostering community engagement through physical presence in Merge Madrid and ETH Shanghai'
+            ],
+            images: [
+                { src: "https://i.postimg.cc/2j4kS3Z4/mergemadrid.jpg", link: "https://i.postimg.cc/2j4kS3Z4/mergemadrid.jpg" },
+              { src: "https://i.postimg.cc/ryJp9KFj/ethshanghai.jpg", link: "https://i.postimg.cc/ryJp9KFj/ethshanghai.jpg" }
+            ]
+          },
+          {
+            id: 'community',
+            title: 'Community Engagement',
+            subtitle: 'Dynamic Ecosystem',
+            icon: <MessageSquare size={20} />,
+            items: [
+              'Building strong developer and user communities through interactive sessions',
+              'Leading regional AMAs and community calls to drive engagement and transparency'
+            ],
+            images: [
+             { src: "https://i.postimg.cc/0jrhmWN9/community_call.jpg", link: "https://i.postimg.cc/0jrhmWN9/community_call.jpg" },
+              { src: "https://i.postimg.cc/L5MmVFGr/vietnam_kol_community_ama.jpg", link: "https://i.postimg.cc/L5MmVFGr/vietnam_kol_community_ama.jpg" }
+            ]
+          },
+          {
+            id: 'interview',
+            title: 'Feature Interview',
+            subtitle: 'Thought Leadership',
+            icon: <MicIcon size={20} />,
+            items: [
+              'Deep dive discussions on Web3 data infrastructure and APAC expansion with industry leading media'
+            ],
+            images: [
+              { src: "https://i.postimg.cc/brbW3G11/Wu_Blockchain_interview.jpg", link: "https://i.postimg.cc/brbW3G11/Wu_Blockchain_interview.jpg" }
+            ],
+            video: "FGjl1YD-BkE" // YouTube ID
+          }
+        ];
+
+        const ZKLINK_SECTIONS = [
+          {
+            id: 'offline-event',
+            title: 'Offline Event Panel Speaker',
+            subtitle: 'Global Thought Leadership',
+            icon: <MicIcon size={20} />,
+            items: [
+              'Represented zkLink as a speaker in high-profile industry panels',
+              'Engaged with L2 ecosystem builders and developers in Warsaw'
+            ],
+            images: [
+               { src: "https://i.postimg.cc/6qYnscVt/L2warsaw_1.jpg", link: "https://i.postimg.cc/6qYnscVt/L2warsaw_1.jpg" },
+              { src: "https://i.postimg.cc/3NnmM1j7/L2warsaw_2.jpg", link: "https://i.postimg.cc/3NnmM1j7/L2warsaw_2.jpg" }
+            ]
+          },
+          {
+            id: 'multi-media',
+            title: 'Branding & Multi-media Marketing',
+            subtitle: 'Viral Engagement',
+            icon: <Video size={20} />,
+            items: [
+              'Strategic content production for global brand awareness',
+              'Executed high-engagement multimedia campaigns on X/Twitter'
+            ],
+            links: [
+              { name: 'View Original X Video', url: 'https://x.com/zkLink_Official/status/1725142409468694664' }
+            ],
+            x_video: true,
+            images: []
+          },
+          {
+            id: 'ecosystem-partnerships',
+            title: 'Ecosystem Partnerships',
+            subtitle: 'Network Expansion',
+            icon: <Users size={20} />,
+            items: [
+              'Forged strategic alliances with Tier 1 infrastructure providers',
+              'Co-marketing initiatives with LayerZero, Polyhedra, and other projects'
+            ],
+            images: [
+              { src: "https://i.postimg.cc/L8TXx5TX/summer_tour_2.jpg", link: "https://i.postimg.cc/L8TXx5TX/summer_tour_2.jpg" },
+              { src: "https://i.postimg.cc/GmQ2XtQm/zklink_x_layerzero.jpg", link: "https://i.postimg.cc/GmQ2XtQm/zklink_x_layerzero.jpg" },
+              { src: "https://i.postimg.cc/FHZRTzZ7/zklink_x_polyhedra.jpg", link: "https://i.postimg.cc/FHZRTzZ7/zklink_x_polyhedra.jpg" }
+            ]
+          },
+          {
+            id: 'onchain-campaign',
+            title: 'zkLink Summer Tour',
+            subtitle: 'Ecosystem Growth',
+            icon: <Zap size={20} />,
+            items: [
+              'Lead marketing for the zkLink Summer Tour on-chain campaign',
+              'Analyzed and achieved record-breaking participation data and user growth'
+            ],
+            images: [
+              { src: "https://i.postimg.cc/RV1V0h2X/summer_tour_1.jpg", link: "https://i.postimg.cc/RV1V0h2X/summer_tour_1.jpg" },
+              { src: "https://i.postimg.cc/VL9LNv24/summer_tour_ama.jpg", link: "https://i.postimg.cc/VL9LNv24/summer_tour_ama.jpg" },
+              { src: "https://i.postimg.cc/fT7Tby1K/summer_tour_data.jpg", link: "https://i.postimg.cc/fT7Tby1K/summer_tour_data.jpg" },
+              { src: "https://i.postimg.cc/ncKcLrN1/zklink_summer_tour.jpg", link: "https://i.postimg.cc/ncKcLrN1/zklink_summer_tour.jpg" }
+            ]
+          },
+          {
+            id: 'community-ama',
+            title: 'Community AMAs',
+            subtitle: 'User Connectivity',
+            icon: <MessageSquare size={20} />,
+            items: [
+              'Fostered transparent communication through frequent community touchpoints',
+              'Hosted educational AMAs to demystify L2 technology for the global audience'
+            ],
+            images: [
+              { src: "https://i.postimg.cc/2ScYqZG4/community_ama_2.jpg", link: "https://i.postimg.cc/2ScYqZG4/community_ama_2.jpg" },
+              { src: "https://i.postimg.cc/XYHWZCLC/community_ama_1.jpg", link: "https://i.postimg.cc/XYHWZCLC/community_ama_1.jpg" }
+            ]
+          }
+        ];
+
+        // --- Helper Components ---
+
+        const DynamicMegaTitle = ({ text }) => {
+          return (
+            <motion.div 
+              initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
+              whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+              className="relative mb-16 group cursor-default"
+            >
+              <h4 className="serif-title text-3xl md:text-5xl font-black italic tracking-[0.1em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-white to-emerald-300 bg-[length:300%_auto] animate-gradient-fast leading-tight">
+                {text}
+              </h4>
+              <motion.div 
+                initial={{ scaleX: 0 }}
+                whileInView={{ scaleX: 1 }}
+                transition={{ delay: 0.6, duration: 1.2 }}
+                className="h-1 w-full bg-gradient-to-r from-emerald-500 via-emerald-200 to-transparent mt-4 origin-left" 
+              />
+            </motion.div>
+          );
+        };
+
+        const SectionImage = ({ img }) => {
+          const content = (
+            <React.Fragment>
+              <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 p-2 rounded-full backdrop-blur-md">
+                  {img.link ? <ExternalLink size={16} className="text-emerald-400" /> : <Maximize2 size={16} className="text-white" />}
+              </div>
+              <img 
+                src={img.src} 
+                alt="Portfolio Exhibit" 
+                className="w-full h-auto object-contain transition-all duration-700 block mx-auto image-sharp"
+                style={{ minHeight: '200px', imageRendering: 'high-quality' }}
+                loading="eager"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            </React.Fragment>
+          );
+
+          return (
+            <motion.div 
+              whileHover={{ scale: 1.02 }}
+              className="relative overflow-hidden border border-white/20 bg-zinc-900/40 group rounded-xl shadow-2xl"
+            >
+              {img.link ? (
+                <a href={img.link} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
+                  {content}
+                </a>
+              ) : content}
+            </motion.div>
+          );
+        };
+
+        const AnimatedName = ({ name }) => {
+          const characters = name.split("");
+          return (
+            <motion.h1 className="serif-title text-5xl md:text-8xl font-light mb-12 tracking-tight leading-tight text-white drop-shadow-2xl uppercase relative flex flex-wrap justify-center px-4" initial="hidden" animate="visible">
+              {characters.map((char, index) => (
+                <motion.span key={index} variants={{ hidden: { opacity: 0, y: 30, filter: "blur(5px)" }, visible: { opacity: 1, y: 0, filter: "blur(0px)" } }} transition={{ duration: 1, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }} whileHover={{ y: -10, color: "#10b981", textShadow: "0px 0px 20px rgba(16,185,129,0.5)", transition: { duration: 0.3 } }} style={{ display: "inline-block", cursor: "default" }}>
+                  {char === " " ? "\u00A0" : char}
+                </motion.span>
+              ))}
+            </motion.h1>
+          );
+        };
+
+        const SocialIcon = ({ href, Icon }) => (
+          <a href={href} target="_blank" rel="noopener noreferrer" className="relative group p-4 flex items-center justify-center transition-all duration-300">
+            <div className="absolute inset-0 bg-emerald-500/0 group-hover:bg-emerald-500/[0.1] rounded-full transition-all duration-500 scale-0 group-hover:scale-100" />
+            <div className="relative z-10 text-zinc-200 group-hover:text-emerald-400 transition-colors duration-300">
+              <Icon size={22} />
+            </div>
+          </a>
+        );
+
+        // --- Main App Component ---
+
+        const App = () => {
+          const [activeCompany, setActiveCompany] = useState('coinw');
+          const [scrollY, setScrollY] = useState(0);
+          const canvasRef = useRef(null);
+          const mouseRef = useRef({ x: -1000, y: -1000 });
+
+          useEffect(() => {
+            const canvas = canvasRef.current;
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let animationFrameId;
+
+            const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+            window.addEventListener('resize', resize);
+            resize();
+
+            const charSet = "010101";
+            const fontSize = 16;
+            const columns = Math.floor(canvas.width / fontSize);
+            const drops = new Array(columns).fill(0).map(() => Math.random() * -100);
+
+            const draw = () => {
+              ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              for (let i = 0; i < drops.length; i++) {
+                const text = charSet.charAt(Math.floor(Math.random() * charSet.length));
+                const x = i * fontSize;
+                const y = drops[i] * fontSize;
+                const dist = Math.sqrt(Math.pow(x - mouseRef.current.x, 2) + Math.pow(y - mouseRef.current.y, 2));
+                ctx.fillStyle = dist < 200 ? "#64ffda" : "rgba(16, 185, 129, 0.18)";
+                ctx.font = `${fontSize}px "JetBrains Mono", monospace`;
+                ctx.fillText(text, x, y);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.985) drops[i] = 0;
+                drops[i] += 0.7;
+              }
+              animationFrameId = requestAnimationFrame(draw);
+            };
+
+            const handleMouseMove = (e) => mouseRef.current = { x: e.clientX, y: e.clientY };
+            const handleScroll = () => setScrollY(window.scrollY);
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('scroll', handleScroll);
+            draw();
+            return () => {
+              cancelAnimationFrame(animationFrameId);
+              window.removeEventListener('resize', resize);
+              window.removeEventListener('mousemove', handleMouseMove);
+              window.removeEventListener('scroll', handleScroll);
+            };
+          }, []);
+
+          const renderContent = () => {
+            const dataMap = {
+              coinw: {
+                sections: COINW_SECTIONS,
+                title: "PR & Marketing Manager",
+                matrixTitle: "Strategic Communication Matrix"
+              },
+              covalent: {
+                sections: COVALENT_SECTIONS,
+                title: "APAC Marketing Lead",
+                matrixTitle: "APAC Expansion Matrix"
+              },
+              zklink: {
+                sections: ZKLINK_SECTIONS,
+                title: "Marketing Partner",
+                matrixTitle: "Ecosystem Growth Matrix"
+              }
+            };
+
+            const currentData = dataMap[activeCompany];
+            
+            if (!currentData || currentData.sections.length === 0) {
+              return (
+                <div className="text-center py-60 opacity-30 italic font-mono text-xs tracking-[0.5em] uppercase text-zinc-300">
+                  {"< Fragmenting Data />"}
+                </div>
+              );
+            }
+
+            return (
+              <div className="animate-in fade-in slide-in-from-bottom-6 duration-1000">
+                <div className="mb-16">
+                  <h3 className="serif-title text-4xl md:text-6xl mb-6 lowercase tracking-tight text-white font-bold leading-tight">
+                    {COMPANIES.find(c => c.id === activeCompany)?.name}
+                  </h3>
+                  <div className="inline-flex items-center gap-4 py-3 px-6 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                    <Briefcase size={18} className="text-emerald-400" />
+                    <span className="text-sm md:text-lg font-black tracking-[0.1em] text-emerald-50 uppercase">
+                      {currentData.title}
+                    </span>
+                  </div>
+                  <div className="h-1 w-16 bg-emerald-500/40 my-10" />
+                  <DynamicMegaTitle text={currentData.matrixTitle} />
+                </div>
+
+                <div className="flex flex-col gap-32 mb-32">
+                  {currentData.sections.map((section) => (
+                    <div key={section.id} className="relative group">
+                      <div className="flex items-center gap-6 mb-10">
+                        <div className="p-3 bg-emerald-500/15 border border-emerald-500/40 rounded-full text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                          {section.icon}
+                        </div>
+                        <h4 className="serif-title text-2xl md:text-4xl font-bold italic text-zinc-50 tracking-normal uppercase leading-tight">
+                          {section.title}
+                        </h4>
+                      </div>
+                      
+                      <div className="flex flex-col gap-10">
+                        <div className="max-w-2xl">
+                          <p className="text-[11px] tracking-[0.3em] uppercase text-emerald-400 font-mono font-black mb-6">{section.subtitle}</p>
+                          <ul className="space-y-5 border-l-2 border-emerald-500/40 pl-8 mb-8">
+                            {section.items.map((item, idx) => (
+                              <li key={idx} className="text-lg md:text-xl text-zinc-100 leading-relaxed font-medium">
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                          
+                          {section.links && section.links.map((link, idx) => (
+                            <a 
+                              key={idx} 
+                              href={link.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="inline-flex items-center gap-2 group/link text-emerald-400 hover:text-emerald-300 font-bold tracking-wider text-xs uppercase transition-all"
+                            >
+                              <ExternalLink size={14} className="group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
+                              {link.name}
+                            </a>
+                          ))}
+                        </div>
+                        
+                        <div className="flex flex-col gap-8">
+                          {/* X Video 特殊预览组件 */}
+                          {section.x_video && (
+                            <motion.a 
+                              href="https://x.com/zkLink_Official/status/1725142409468694664"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              whileHover={{ scale: 1.015 }}
+                              className="relative block w-full max-w-4xl aspect-video rounded-3xl overflow-hidden border border-emerald-500/30 bg-zinc-950 group/x"
+                            >
+                              {/* 视觉背景 */}
+                              <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-black" />
+                              <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+                              
+                              {/* 中央交互元素 */}
+                              <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 z-10">
+                                <div className="relative">
+                                   <div className="absolute inset-0 rounded-full bg-emerald-400/20 blur-2xl group-hover/x:bg-emerald-400/40 transition-all duration-500" />
+                                   <div className="relative w-24 h-24 rounded-full bg-black/40 border-2 border-emerald-500/60 backdrop-blur-xl flex items-center justify-center text-emerald-400 group-hover/x:scale-110 group-hover/x:border-emerald-300 transition-all duration-500">
+                                     <Video size={48} fill="currentColor" strokeWidth={0} />
+                                   </div>
+                                </div>
+                                <div className="text-center px-6">
+                                  <p className="text-white text-xl md:text-3xl font-black uppercase tracking-[0.2em] mb-3 italic">Watch Multimedia Campaign</p>
+                                  <div className="flex items-center justify-center gap-3 py-2 px-5 bg-white/5 border border-white/10 rounded-full backdrop-blur-md transition-colors group-hover/x:bg-white/10">
+                                    <XIcon size={16} />
+                                    <span className="text-emerald-400 font-mono text-sm tracking-widest font-bold">@zkLink_Official</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* 底部详情提示 */}
+                              <div className="absolute bottom-8 left-8 right-8 flex justify-between items-end">
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] uppercase font-black tracking-[0.3em] text-zinc-500">Content Type</span>
+                                  <span className="text-xs text-zinc-300 font-bold uppercase tracking-widest">Global Brand Awareness Video</span>
+                                </div>
+                                <div className="flex items-center gap-3 py-2 px-4 bg-emerald-500/20 border border-emerald-500/30 rounded-full backdrop-blur-md">
+                                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                  <span className="text-[10px] uppercase font-black tracking-widest text-emerald-50">Viral Media</span>
+                                </div>
+                              </div>
+                            </motion.a>
+                          )}
+
+                          {section.images && section.images.length > 0 && (
+                            <div className={`grid grid-cols-1 ${section.images.length > 1 ? (section.images.length > 3 ? 'md:grid-cols-2 lg:grid-cols-2' : 'md:grid-cols-2') : ''} gap-8`}>
+                              {section.images.map((img, i) => (
+                                <SectionImage key={i} img={img} />
+                              ))}
+                            </div>
+                          )}
+
+                          {section.video && (
+                            <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black">
+                              <iframe
+                                width="100%"
+                                height="100%"
+                                src={`https://www.youtube.com/embed/${section.video}`}
+                                title="YouTube video player"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              ></iframe>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 仅 CoinW 板块显示 Matrix 和 Media Collaboration */}
+                {activeCompany === 'coinw' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-16 pt-20 border-t border-white/10">
+                    <div>
+                      <DynamicMegaTitle text="Output Matrix" />
+                      <div className="grid gap-5">
+                        {CONTENT_FORMS.map((form, idx) => (
+                          <div key={idx} className="p-6 bg-zinc-900/40 border border-white/10 hover:bg-emerald-500/[0.08] transition-all group rounded-xl">
+                            <div className="flex items-center gap-4 mb-3 text-emerald-300 group-hover:text-emerald-400 transition-colors">
+                              {form.icon}
+                              <span className="text-[12px] font-black tracking-widest uppercase">{form.type}</span>
+                            </div>
+                            <p className="text-[13px] text-zinc-200 italic font-bold group-hover:text-white transition-colors leading-relaxed">{form.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <DynamicMegaTitle text="Media Collaboration" />
+                      <div className="space-y-10">
+                        {COINW_MEDIA.map((cat, idx) => (
+                          <div key={idx}>
+                            <h5 className="text-[11px] tracking-[0.3em] text-emerald-400 uppercase mb-5 font-mono font-black border-b border-emerald-500/10 pb-2">{cat.category}</h5>
+                            <div className="grid grid-cols-2 gap-3">
+                              {cat.items.map((m, mi) => (
+                                <div key={mi} className="px-4 py-3 bg-zinc-900/50 border border-white/10 text-[11px] text-zinc-50 text-center hover:border-emerald-500/80 transition-all uppercase italic tracking-tight font-black rounded-lg hover:bg-emerald-500/5 cursor-default">
+                                  {m}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          };
+
+          return (
+            <div className="min-h-screen bg-black text-[#F5F5F0] overflow-x-hidden selection:bg-emerald-500/30 font-serif">
+              <div className="fixed inset-0 pointer-events-none z-10 opacity-30" style={{ background: `radial-gradient(circle 400px at ${mouseRef.current.x}px ${mouseRef.current.y}px, rgba(16, 185, 129, 0.1), transparent 80%)` }} />
+
+              {/* Hero Section */}
+              <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden">
+                <div className="absolute inset-0 z-0 opacity-40"><canvas ref={canvasRef} /></div>
+                <div className="relative z-10 text-center px-4" style={{ opacity: 1 - scrollY / 700 }}>
+                  <AnimatedName name="Camila Shen" />
+                  <div className="flex flex-wrap justify-center gap-x-12 mb-16 italic opacity-100 uppercase tracking-[0.3em] text-[11px] font-bold text-emerald-100">
+                    <span>Marketer</span>
+                    <span>Tech Enthusiast</span>
+                  </div>
+                  <div className="flex justify-center gap-4 md:gap-8 mb-20">
+                    <SocialIcon href="https://x.com/0xCamila25" Icon={XIcon} />
+                    <SocialIcon href="https://www.linkedin.com/in/camila-shen-9584a4169/" Icon={LinkedInIcon} />
+                    <SocialIcon href="https://www.instagram.com/camila_web3" Icon={InstagramIcon} />
+                  </div>
+                  <motion.button 
+                    initial={{ opacity: 0 }} animate={{ opacity: 1, y: [0, -8, 0] }} transition={{ opacity: { delay: 1, duration: 1.5 }, y: { repeat: Infinity, duration: 4, ease: "easeInOut" } }}
+                    onClick={() => document.getElementById('portfolio-section').scrollIntoView({ behavior: 'smooth' })}
+                    className="group relative px-12 py-4 border border-emerald-500/50 hover:border-emerald-300 transition-all duration-700 ease-out shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)]"
+                  >
+                    <span className="relative z-10 text-[11px] tracking-[0.5em] uppercase font-black text-emerald-400 group-hover:text-white transition-colors">Explore my journey</span>
+                  </motion.button>
+                </div>
+              </section>
+
+              {/* Portfolio Section */}
+              <section id="portfolio-section" className="relative min-h-screen bg-[#070707] py-24 px-6 md:px-12 border-t border-white/10">
+                <div className="max-w-7xl mx-auto">
+                  <div className="flex flex-col md:flex-row gap-16 md:gap-24">
+                    {/* Sidebar */}
+                    <div className="w-full md:w-1/4">
+                      <div className="sticky top-32 space-y-10">
+                        <h2 className="text-[11px] tracking-[0.3em] uppercase text-zinc-400 mb-8 font-mono italic font-black border-b border-emerald-500/20 pb-4">Experience</h2>
+                        <div className="space-y-6">
+                          {COMPANIES.map((company) => (
+                            <button key={company.id} onClick={() => setActiveCompany(company.id)} className={`block text-left transition-all duration-500 ${activeCompany === company.id ? 'text-emerald-400 translate-x-3 italic scale-105' : 'text-zinc-500 hover:text-zinc-200'}`}>
+                              <span className="serif-title text-xl md:text-2xl lowercase tracking-wider font-semibold">{company.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Content Detail */}
+                    <div className="w-full md:w-3/4">
+                      {renderContent()}
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <footer className="bg-black py-20 text-center opacity-60 border-t border-white/10">
+                <p className="text-[11px] tracking-[0.7em] uppercase mb-8 font-mono italic text-zinc-300 font-black">digital soul • ephemeral matter</p>
+                <button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="serif-title text-xl lowercase italic text-emerald-50 font-bold hover:text-emerald-400 transition-all duration-700">Return to Origin</button>
+              </footer>
+            </div>
+          );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
